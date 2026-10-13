@@ -1,224 +1,178 @@
 # Entrega 2 — Modelo Lógico, Implementação SQL e Apresentação Final
-### Ótica Kadosh | Modelagem de sistema de gestão de informações
-> **Levantamento real localizado:** A [Entrega 1 do grupo](entrega_1/README.md) documenta visita presencial em 05/09/2026 à Ótica Kadosh (Av. Diogo da Costa Tavares, 125, Jardim Romano, São Paulo/SP), entrevista do gerente Marcos Vinícius Silva Menezes, três funcionários e aproximadamente 100 atendimentos e 80 vendas semanais *segundo relato da equipe*.
->
-> **Diferença entre os modelos:** O DER original tem 13 entidades e inclui processos ópticos específicos de **receita/laudo, atendimento, pedido, troca e garantia**. O protótipo de Entrega 2 abaixo modela apenas 12 tabelas e **não substitui a revisão do DER original nem representa integralmente esses processos**. SQL, dicionário e diagramas são propostas técnicas sujeitas a revisão, e não validação da loja ou do professor. Veja [pendências de adequação](docs/validacoes_pendentes.md).
->
-> **Privacidade:** As informações sobre clientes e prescrições ópticas devem permanecer anonimizadas. A massa de teste é totalmente fictícia.
+### Ótica Kadosh | Projeto acadêmico de Modelagem de Banco de Dados
 
+> **Status:** versão técnica revisada, baseada no [levantamento original da Entrega 1](entrega_1/README.md). Não declarar como homologada: ainda faltam correções individualizadas do professor, confirmação presencial das regras propostas e execução do script em MySQL 8. **A avaliação utiliza o README da branch `main`.**
 
-> **Estado do projeto:** protótipo acadêmico de Entrega 2 em revisão. A pesquisa de campo original foi recuperada e preservada em `entrega_1/README.md`; ainda faltam adequação do modelo à E1, feedback do professor e testes diretos no MySQL.
+## Integrantes
 
-**Esta pasta destina-se à branch `main` do GitHub.** A correção considera o `README.md` da raiz da `main`; não basta enviar PDF ou apontar para outra branch. O arquivo presente é uma versão técnica preparada para incorporação ao projeto, não evidencia commits ou entrega realizada pelo grupo.
+| Nome completo | RGM | GitHub |
+|---|---|---|
+| Victor Augusto Silva Marcilio | 47190175 | A confirmar |
+| João Felipe De Sousa Pires | 48165379 | [jfpiresoficial](https://github.com/jfpiresoficial) |
+| Cauã Batista Freire | 48355127 | A confirmar |
+| João Victor Gobi Romero | 48114642 | [joaovromero](https://github.com/joaovromero) |
+| Guilherme Araujo De Oliveira | 47116862 | A confirmar |
+
+## Índice de artefatos
+
+| Artefato | Link | Situação |
+|---|---|---|
+| Entrega 1 original | [README da E1](entrega_1/README.md) | Fonte de pesquisa de campo |
+| Levantamento atualizado | [levantamento/levantamento.md](levantamento/levantamento.md) | Relato organizado, sem inventar dados |
+| DER conceitual revisado | [DER e cardinalidades](diagramas/der_conceitual_revisado.md) | Representação textual, falta imagem em notação brModelo |
+| Modelo lógico relacional | [Modelo Mermaid](diagramas/modelo_logico_revisado.md) | Visualização no GitHub, falta artefato final brModelo |
+| Script SQL + massa sintética | [docs/script.sql](docs/script.sql) | MySQL 8; teste direto pendente |
+| Dicionário de dados | [HTML único](docs/dicionario_dados.html) | 17 tabelas, tipos e restrições |
+| Transparência de IA | [uso_de_ia.md](docs/uso_de_ia.md) | Etapas, resultados e limitações |
+| Verificações antes da submissão | [validacoes_pendentes.md](docs/validacoes_pendentes.md) | Checklist obrigatório |
 
 ## 1. Relatório Técnico Final
 
-### Integrantes
-
-| Nome completo do aluno | RGM | Usuário do GitHub |
-|---|---|---|
-| Victor Augusto Silva Marcilio | 47190175 | A INFORMAR |
-| João Felipe De Sousa Pires | 48165379 | jfpiresoficial |
-| Cauã Batista Freire | 48355127 | A INFORMAR |
-| João Victor Gobi Romero | 48114642 | joaovromero |
-| Guilherme Araujo De Oliveira | 47116862 | A INFORMAR |
-
 ### 1.1 Revisão do Modelo Conceitual
 
-**Caracterização:** Ótica Kadosh, varejo óptico na Av. Diogo da Costa Tavares, 125, Jardim Romano, São Paulo — SP, CEP 08191-000. Segundo o levantamento do grupo, três funcionários, cerca de 100 atendimentos e 80 vendas semanais. O processo real relatado inclui atendimento, receita/laudo, pedido, pagamento, compras, estoque, montagem, retirada, garantia e trocas. O modelo simplificado atual cobre apenas parte desse escopo.
+**Caracterização.** A Ótica Kadosh é um estabelecimento comercial de produtos ópticos, situado na **Av. Diogo da Costa Tavares, 125, Jardim Romano, São Paulo – SP, CEP 08191-000**, contato **(11) 99349-4371**, conforme documentação fornecida pelo grupo na Entrega 1. A entrevista foi realizada presencialmente em **05/09/2026** com o gerente **Marcos Vinícius Silva Menezes**. O grupo informou **3 funcionários, aproximadamente 100 atendimentos e 80 vendas por semana**, com atuação de optometrista, gerente e consultor óptico. Esses números são **relatados**, não extraídos do banco operacional. A foto da loja, fornecida pelo grupo, está [neste repositório](entrega_1/Otica%20kadoshi.jpeg). O grupo deve confirmar os participantes efetivos da entrevista e se a foto representa a entrevista, pois o README original apenas a identifica como foto realizada no interior da ótica.
 
-**Problemas de gestão de informações propostos para confirmação (cada qual com consulta SQL):**
+**Problemas de gestão de informação:**
 
-- **P1 —** Dificuldade de acompanhar valores vendidos, descontos e ticket médio quando há registros dispersos. Consulta: **G01, G02**.
-- **P2 —** Dificuldade de conhecer o saldo de estoque, giro e necessidade de reposição. Consulta: **G03, G04**.
-- **P3 —** Dificuldade de acompanhar fornecedores, compras e recebimentos. Consulta: **G05**.
-- **P4 —** Dificuldade de conciliar pagamentos e acompanhar cancelamentos de vendas. Consulta: **G06, G08**.
-- **P5 —** Dificuldade de acompanhar prazos de pedidos que dependem de montagem. Consulta: **G07**.
+| Código | Problema relatado e consequência | Processo/modelo responsável | Consulta SQL |
+|---|---|---|---|
+| P1 | Dados de atendimento e pedido separados em papéis/planilhas, sem visão integrada | CLIENTE, ATENDIMENTO, RECEITA, PEDIDO | G01, G10 |
+| P2 | Pagamentos parciais e parcelas monitorados em planilha separada | PEDIDO, ITEM_PEDIDO, PAGAMENTO | G02, G03, G09 |
+| P3 | Entradas e saídas de estoque dependem de conciliação manual com fornecedores e pedidos | FORNECEDOR, COMPRA, ITEM_COMPRA, PRODUTO, MOVIMENTACAO_ESTOQUE | G04, G05 |
+| P4 | Montagem, retirada e garantia devem ser acompanhadas pelo pedido | PEDIDO, MONTAGEM | G06, G07 |
+| P5 | Histórico de trocas e destino de peças não está integrado ao pedido | TROCA, ITEM_TROCA, PRODUTO, PEDIDO | G08 |
 
-**Escopo:** clientes, funcionários, fornecedores, categorias, catálogo, compras, itens comprados, vendas, itens vendidos, pagamentos, movimentações de estoque e ordens de montagem. *Processos prováveis ainda não verificados*, como trocas, devoluções, contas a pagar, vendas sem identificação e prescrições, deverão ser investigados em campo e acrescentados quando de fato necessários. Se houver atividades clínicas, também será necessário avaliar a proteção de dados sensíveis. A justificativa da escolha é a possibilidade de estruturar informação operacional e apoiar a decisão; isso não prova que os problemas ocorram na empresa.
+**Escopo completo representado:** cliente, funcionários, atendimento, receita, medidas ópticas por olho e distância, produto e categoria, pedido e itens, pagamentos e parcelas, fornecedores e compras, movimentações de estoque, montagem/retirada, garantia calculada e trocas/devoluções. O modelo usa 17 tabelas. O processo fiscal e eventuais convênios **não foram confirmados** no levantamento da E1; não se presume que a ótica os opere da forma de qualquer exemplo genérico.
 
-**Evidências:** consultar [levantamento presencial na E1](entrega_1/README.md), com dados da visita, entrevistado e [fotografia da loja no repositório original](https://github.com/jfpiresoficial/Entrega-1-Modelo-Conceitual-DER---otica-kadosh-modelagem-dados/blob/main/Otica%20kadoshi.jpeg). Não publicar laudos ou formulários com dados pessoais reais.
+**Entrevista e observações.** Conforme [levantamento registrado](levantamento/levantamento.md), o grupo realizou visita à unidade e registrou imagens da loja, formulário de pedido, comprovante e laudo óptico; por privacidade, documentos com dados pessoais reais não são reproduzidos. **Observações documentais:** campos de dados do cliente e consultor, datas, armação, lentes, quantidades, preço por armação e par de lentes, total, sinal, saldo e data de retirada; medidas para olho direito/esquerdo, longe/perto, DNP e altura. **Respostas relatadas:** receita externa conferida com prazo operacional de até um ano; uma receita por pedido; pagamentos Pix, dinheiro, débito e crédito, inclusive parcelas; compras vinculadas ao pedido quando estoque insuficiente; garantia de um ano após montagem; troca com peça reaproveitada ou descartada. Não há confirmação dos nomes dos integrantes presentes nem da redação literal de perguntas; esses dados não foram inventados.
 
-**Entrevista:** gerente Marcos Vinícius Silva Menezes, em visita presencial à unidade em 05/09/2026, conforme registro da equipe na E1. Não se atribuem respostas adicionais ao entrevistado.
+**Fluxos de negócio:**
+1. Cliente informa nome e contatos; funcionário registra atendimento, data e procedimento; pode haver receita externa ou laudo da própria ótica.
+2. Receita vinculada ao atendimento tem origem, data e medidas por olho (OD/OE) e uso (LONGE/PERTO). DNP e altura são campos separados; correspondência DE/DC do laudo deve ser validada.
+3. Pedido vincula atendimento e receita exclusivos; itens de armação/lentes preservam quantidades e preços praticados. Estados técnicos propostos: ABERTO, CONCLUIDO e CANCELADO.
+4. Pagamento registra parcela, vencimento, forma, valor, quitação ou estorno. Compra quando necessária referencia pedido, fornecedor, funcionário e itens recebidos.
+5. Movimento registra produto, data, tipo, quantidade e origem; montagem mantém início, previsão, conclusão e retirada, com data final da garantia **derivada** por um ano; troca detalha motivo, eventual cobrança e destino da peça.
 
-**Processos propostos:** cadastro, gestão de catálogo, compras e recebimentos, venda de itens, pagamentos, controle de estoque, possível montagem e relatórios. Fluxos em [fluxos da proposta](diagramas/fluxos.md). A aplicação proposta cobre os processos listados, mas a cobertura de **todos os dados reais da ótica** depende de validação presencial.
+**Requisitos funcionais (refinamento da E1):**
 
-**Requisitos funcionais:**
+| Código | Exigência do sistema e campos relacionados |
+|---|---|
+| RF01 | Cadastrar e consultar cliente com identificador, nome, telefone, email, bairro, CEP e estado ativo. |
+| RF02 | Registrar atendimento com data, meio, procedimento, cliente e funcionário responsável. |
+| RF03 | Registrar receita com origem/data; medidas por receita, olho e distância, incluindo esférico, cilíndrico, eixo, DNP e altura. |
+| RF04 | Conferir prazo operacional informado para receita externa na data do pedido (A03). |
+| RF05 | Registrar pedido com atendimento e receita únicos, data, status, itens (produto, quantidade, preço), desconto e observações. |
+| RF06 | Registrar recebimentos e parcelas com valor, vencimento, data, forma e estado; calcular saldo pendente (G03). |
+| RF07 | Registrar compra de fornecedor associada ao pedido, itens, custos, solicitação, status e chegada. |
+| RF08 | Controlar entradas, saídas e ajustes por produto com data, quantidade e origem do movimento (G04). |
+| RF09 | Acompanhar montagem, previsão, conclusão, retirada e prazo de garantia decorrente da conclusão (G06, G07). |
+| RF10 | Registrar troca por pedido, motivo, data, eventual cobrança e destino das peças (G08). |
 
-- **RF01 —** Cadastrar cliente com nome, telefone, e-mail opcional e CPF opcional e único quando preenchido; manter indicador ativo.
-- **RF02 —** Cadastrar colaboradores com nome, cargo e estado ativo, vinculando responsáveis a compras, vendas e montagens.
-- **RF03 —** Cadastrar fornecedores com nome, CNPJ opcional e telefone; identificar o fornecedor de cada compra.
-- **RF04 —** Cadastrar categorias e produtos com SKU, descrição, preço, estoque mínimo e indicador ativo.
-- **RF05 —** Registrar compras com data, fornecedor, colaborador e status, contendo produtos, quantidades e custos unitários.
-- **RF06 —** Registrar recebimentos de compras, gerando entradas correspondentes no histórico de movimentações.
-- **RF07 —** Registrar vendas com cliente, colaborador, data, status, desconto e itens com preço praticado e quantidade.
-- **RF08 —** Registrar pagamentos parciais ou totais por venda, com data, forma, valor e estado de confirmação.
-- **RF09 —** Gerar saídas de estoque para vendas concluídas e permitir ajustes documentados com justificativa.
-- **RF10 —** Consultar estoque calculado a partir de movimentos, sinalizando produtos abaixo do mínimo.
-- **RF11 —** Abrir e acompanhar ordem de montagem vinculada à venda, com previsão, responsável, status e conclusão.
-- **RF12 —** Produzir relatórios gerenciais e consultas de auditoria de vendas, estoque, compras, pagamentos e montagens.
+**Não funcionais:** RNF01 — restringir acesso a informações pessoais e ópticas sensíveis; RNF02 — gerar cópias de segurança e testes de restauração; RNF03 — assegurar transações atômicas para recebimento e baixa de estoque; RNF04 — consultas de histórico e indicadores acessíveis a usuários não técnicos; RNF05 — trilha de auditoria de alterações sensíveis na aplicação. A implementação plena dos RNFs de segurança e auditoria exige componentes além do esquema SQL acadêmico.
 
-**Requisitos não funcionais:**
+**Regras de negócio (RN01–RN11):**
 
-- **RNF01 —** Controle de acesso por função: operações comerciais, estoque, gestão e manutenção com privilégios mínimos.
-- **RNF02 —** Proteção de dados pessoais: acesso registrado, criptografia em trânsito, backups protegidos e política de retenção.
-- **RNF03 —** Integridade transacional ao registrar venda, pagamento e saída, ou compra, recebimento e entrada.
-- **RNF04 —** Interface legível e responsiva, uso simples por colaboradores e validação de erros nos formulários.
-- **RNF05 —** Consultas por SKU, venda e data indexadas; meta de tempo deve ser medida e acordada com a organização.
-- **RNF06 —** Backup e recuperação testados; disponibilidade e RPO/RTO a definir em campo.
+| Código | Regra e evidência/modelagem |
+|---|---|
+| RN01 | Não há pedido sem atendimento (relato E1; FK e auditoria A01). |
+| RN02 | Cada pedido utiliza receita própria, vinculada ao mesmo atendimento (relato E1; FK UNIQUE e A02). |
+| RN03 | Conferir se receita externa tem até um ano na data do pedido (procedimento da ótica relatado, não legislação geral; A03). |
+| RN04 | Pedido inclui armação e lentes com preço praticado; conferir por itens/categorias (relato E1, A04). |
+| RN05 | Pedido pode ter sinal e parcelas, com conciliação entre total, desconto e pagamentos (relato E1, A05). |
+| RN06 | Compra pode ser dispensada quando há estoque; cada compra atende um pedido e um fornecedor (relato E1, A06). |
+| RN07 | Garantia de um ano começa na conclusão da montagem; retirada efetiva registrada separadamente (relato E1, G07/A07). |
+| RN08 | Peças de trocas podem ser reaproveitadas ou descartadas; SUBSTITUIDO é status técnico adicional proposto (relato E1, A08). |
+| RN09 | Saldo de estoque não pode ser negativo (controle técnico proposto, A09; requer validação transacional). |
+| RN10 | Pedido cancelado não deve manter recebimentos quitados não estornados (controle técnico proposto, A10). |
+| RN11 | Entrada de compra só deve ocorrer após status RECEBIDA (controle técnico proposto, A11). |
 
-**Regras de negócio propostas:**
+**DER conceitual e revisão E1:** [DER original do grupo](https://github.com/jfpiresoficial/Entrega-1-Modelo-Conceitual-DER---otica-kadosh-modelagem-dados/blob/main/DER_conceitual_BRMW_HD.jpg) e [estrutura conceitual revisada de 17 entidades](diagramas/der_conceitual_revisado.md). Ferramenta da representação atual: **Markdown estruturado**; ainda é necessário exportar um DER gráfico na **notação brModelo** (entidade-retângulo, relacionamento-losango, cardinalidade (mín,máx), chave identificadora sublinhada, sem FKs). Os **apontamentos individuais da correção do professor não foram disponibilizados**; a tabela abaixo mostra diferenças técnicas, não substitui resposta à correção:
 
-- **RN01 —** Todo cliente deve possuir identificador, nome e telefone; CPF é opcional e, quando fornecido, não pode repetir.
-- **RN02 —** Funcionário deve ter nome, cargo e situação; operações registram o responsável.
-- **RN03 —** Fornecedor deve ter nome; CNPJ quando informado não se repete.
-- **RN04 —** Produto deve ter SKU único, descrição, categoria e indicador de atividade.
-- **RN05 —** Preços e descontos não podem ser negativos; preços praticados em itens históricos não mudam com atualização do catálogo.
-- **RN06 —** Cada compra pertence a um fornecedor e a um colaborador; estados válidos: ABERTA, RECEBIDA, CANCELADA.
-- **RN07 —** Cada item de compra deve referenciar exatamente uma compra e um produto; quantidade positiva, custo não negativo e par sem repetição.
-- **RN08 —** Cada venda referencia um cliente e um colaborador; estados ABERTA, CONCLUIDA, CANCELADA; desconto não negativo.
-- **RN09 —** Cada item de venda tem produto, quantidade positiva e preço do momento; venda concluída precisa de ao menos um item.
-- **RN10 —** Movimento tem produto, quantidade positiva e tipo; entrada de compra refere compra, saída refere venda; ajustes sem vínculo; o saldo não deve ficar negativo.
-- **RN11 —** Pagamento referencia venda, forma válida e valor positivo; venda cancelada não deve possuir pagamento confirmado; conciliação é verificada.
-- **RN12 —** Uma venda origina no máximo uma ordem de montagem; previsão não precede abertura; conclusão requer data.
-- **RN13 —** Excluir cadastros com histórico de compras/vendas deve ser restringido para preservar rastreabilidade.
-- **RN14 —** Informações de prescrição e saúde não integram este protótipo sem confirmação explícita de necessidade e medidas específicas de proteção.
-
-**Regras típicas não incorporadas:** prescrição e exames, emissão fiscal, devolução de mercadoria, faturamento a convênios e logística com laboratório externo não foram modelados porque não se dispõe de confirmação de como a ótica realiza tais processos; precisarão ser acrescentados se forem praticados. Os vínculos com saúde são especialmente sujeitos a controles legais.
-
-**DER revisado (proposta Graphviz usando notação gráfica equivalente à do brModelo):**
-
-[DER conceitual original em notação brModelo](https://github.com/jfpiresoficial/Entrega-1-Modelo-Conceitual-DER---otica-kadosh-modelagem-dados/blob/main/DER_conceitual_BRMW_HD.jpg) — [visualização simplificada em Mermaid da proposta E2](diagramas/modelo_proposto.md).
-
-**Software:** Graphviz/DOT; atributos no retângulo com identificadores sublinhados, relações em losangos, cardinalidades min/max por extremidade e sem FKs no modelo conceitual. A versão final nativa do brModelo não foi produzida.
-
-**Caso A — correção E1:** a correção individual do professor não foi fornecida, apesar de o README da Entrega 1 estar disponível; portanto esta tabela separa propostas técnicas de apontamentos que ainda precisam ser efetivamente transcritos:
-
-| Apontamento da correção E1 | O que mudou | Por quê |
+| Revisão técnica proposta | Alteração | Justificativa |
 |---|---|---|
-| **[NÃO DISPONÍVEL]** — anexar feedback individual do professor | Ainda não foi possível confrontar o DER pré-existente com a versão revisada | A entrega 2 exige citar cada apontamento, e não é correto inventá-lo |
-| **Revisão técnica proposta (não atribuída ao professor):** relação N:N entre venda e produto | Adotada ITEM_VENDA com quantidade e preço histórico | Evitar relação N:N desestruturada |
-| **Revisão técnica proposta (não atribuída ao professor):** relação N:N entre compra e produto | Adotada ITEM_COMPRA com quantidade e custo | Preservar granularidade |
-| **Revisão técnica proposta (não atribuída ao professor):** múltiplos pagamentos | Separada entidade PAGAMENTO | Permitir uma ou várias formas por venda |
+| Protótipo genérico de 12 tabelas não cobria atendimento/receita | Inclusão de ATENDIMENTO, RECEITA, MEDIDA_RECEITA | Apoiar processo registrado na visita |
+| Compra desvinculada do pedido | COMPRA.id_pedido obrigatório | Seguir regra de compra vinculada a pedido |
+| Venda genérica e ordem de montagem | PEDIDO e MONTAGEM | Linguagem e processo do formulário real |
+| Falta de tratamento da troca | TROCA e ITEM_TROCA | Controlar peça e destino |
+| Data de garantia armazenada isoladamente | Data final derivada de MONTAGEM.data_conclusao | Evitar inconsistência |
 
 ### 1.2 Conversão do Modelo Conceitual para o Modelo Lógico
 
-As 12 entidades foram convertidas em 12 tabelas; atributos simples tornaram-se colunas tipadas. No 1:N, a PK do lado 1 migrou como FK para o lado N (ex.: `venda.id_cliente`). No N:N, as entidades associativas `item_venda` e `item_compra` recebem duas FKs que formam uma PK composta. A relação VENDA–ORDEM_MONTAGEM (0:1) foi materializada com FK **UNIQUE** em `ordem_montagem.id_venda`. As relações de origem entre movimentos de estoque e compra/venda têm FKs opcionais com `CHECK` dependente do tipo de movimento. Não existe generalização/especialização, portanto não há conversão desse recurso.
+As 17 entidades originaram 17 tabelas. Cada atributo simples virou coluna; cada vínculo 1:N é implementado por FK no lado N (CLIENTE → ATENDIMENTO, PEDIDO → PAGAMENTO, FORNECEDOR → COMPRA), com participação obrigatória definida por NOT NULL. Vínculos 1:0..1 usam FK UNIQUE (ATENDIMENTO → RECEITA, ATENDIMENTO → PEDIDO, RECEITA → PEDIDO, PEDIDO → MONTAGEM). Os relacionamentos N:N PEDIDO–PRODUTO, COMPRA–PRODUTO e TROCA–PRODUTO são decompostos em ITEM_PEDIDO, ITEM_COMPRA e ITEM_TROCA com PK composta. Medidas têm PK (id_receita,olho,distancia) e guardam atributos que dependem do trio. Não foi necessária generalização/especialização.
 
-### 1.3 Definição de Chaves Primárias e Estrangeiras
+### 1.3 Chaves primárias e estrangeiras
 
 | Tabela | PK | FKs |
 |---|---|---|
-| `cliente` | `id_cliente` | — |
-| `funcionario` | `id_funcionario` | — |
-| `fornecedor` | `id_fornecedor` | — |
-| `categoria` | `id_categoria` | — |
-| `produto` | `id_produto` | id_categoria → categoria.id_categoria |
-| `compra` | `id_compra` | id_fornecedor → fornecedor.id_fornecedor; id_funcionario → funcionario.id_funcionario |
-| `item_compra` | `id_compra`, `id_produto` | id_compra → compra.id_compra; id_produto → produto.id_produto |
-| `venda` | `id_venda` | id_cliente → cliente.id_cliente; id_funcionario → funcionario.id_funcionario |
-| `item_venda` | `id_venda`, `id_produto` | id_venda → venda.id_venda; id_produto → produto.id_produto |
-| `pagamento` | `id_pagamento` | id_venda → venda.id_venda |
-| `movimentacao_estoque` | `id_movimentacao` | id_produto → produto.id_produto; id_compra → compra.id_compra; id_venda → venda.id_venda |
-| `ordem_montagem` | `id_ordem` | id_venda → UNIQUE venda.id_venda; id_funcionario → funcionario.id_funcionario |
+| cliente | id_cliente | — |
+| funcionario | id_funcionario | — |
+| atendimento | id_atendimento | id_cliente, id_funcionario |
+| receita | id_receita | id_atendimento UNIQUE |
+| medida_receita | id_receita, olho, distancia | id_receita |
+| fornecedor | id_fornecedor | — |
+| categoria | id_categoria | — |
+| produto | id_produto | id_categoria |
+| pedido | id_pedido | id_atendimento UNIQUE, id_receita UNIQUE |
+| item_pedido | id_pedido, id_produto | id_pedido, id_produto |
+| pagamento | id_pagamento | id_pedido; UNIQUE(id_pedido,numero_parcela) |
+| compra | id_compra | id_pedido, id_fornecedor, id_funcionario |
+| item_compra | id_compra, id_produto | id_compra, id_produto |
+| montagem | id_montagem | id_pedido UNIQUE, id_funcionario |
+| troca | id_troca | id_pedido, id_funcionario |
+| item_troca | id_troca, id_produto | id_troca, id_produto |
+| movimentacao_estoque | id_movimento | id_produto, id_compra?, id_pedido?, id_troca? |
 
-### 1.4 Processo de Normalização (1FN, 2FN e 3FN)
+### 1.4 Normalização — 1FN, 2FN e 3FN
 
-**1FN — atomicidade:** listas de produtos em uma célula e listas de telefones de clientes foram evitadas; cada item de compra e de venda ocupa uma linha. O modelo atual usa apenas um telefone principal por cliente; se a organização exigir múltiplos contatos, será necessária entidade adicional. **2FN — dependência total:** nas tabelas de PK composta `(id_venda,id_produto)` e `(id_compra,id_produto)`, `quantidade` e `preco_unitario/custo_unitario` dependem do par completo; nomes e descrições do produto não se repetem nessas tabelas. As demais tabelas possuem PK simples, sem dependência parcial. **3FN — ausência de dependência transitiva indevida:** a descrição da categoria fica na tabela CATEGORIA, o nome do fornecedor em FORNECEDOR e os dados do cliente em CLIENTE, todos ligados por FKs. O preço no item é um fato da própria transação (histórico), não uma cópia indevida do preço atual de PRODUTO. Saldo de estoque não é armazenado em PRODUTO, pois deriva da soma de MOVIMENTACAO_ESTOQUE. Assim, evitam-se anomalias de atualização, inserção e exclusão.
+**1FN:** cada célula representa um valor indivisível; itens de pedidos, pagamentos, medidas por olho/distância e trocas foram desmembrados em tabelas próprias para eliminar listas e atributos repetidos. **2FN:** em ITEM_PEDIDO a quantidade/preço dependem de (id_pedido,id_produto), em ITEM_COMPRA de (id_compra,id_produto), em ITEM_TROCA de (id_troca,id_produto) e em MEDIDA_RECEITA de (id_receita,olho,distancia); o nome do produto e dados do pedido não são duplicados nessas tabelas. **3FN:** fornecedores, funcionários, clientes, produtos e categorias são tabelas independentes; dados descritivos não ficam duplicados em pedidos. Os preços praticados são fatos históricos da transação e não devem ser substituídos pelo preço atual. Garantia final é derivada de conclusão de montagem e estoque é calculado pelo balanço dos movimentos — eliminam redundância derivável.
 
-### 1.5 Justificativas Técnicas das Decisões
+### 1.5 Justificativas técnicas
 
-PKs inteiras por sua estabilidade, exceto `item_venda` e `item_compra` com PKs compostas que proíbem item duplicado dentro do mesmo evento. FKs `NOT NULL` expressam participações obrigatórias (RN06–RN09), enquanto `id_compra` e `id_venda` opcionais no estoque representam a origem condicional. As restrições `UNIQUE` impedem duplicação de SKU (RN04), categoria (RN04), CPF/CNPJ quando preenchidos (RN01/RN03) e múltiplas ordens por venda (RN12). `CHECK` protege domínios de estados (RN06/RN08/RN11/RN12), quantidades (RN07/RN09/RN10), valores (RN05/RN11) e datas (RN12). O vínculo histórico usa `ON DELETE RESTRICT` (RN13). Regras entre linhas ou tabelas, como venda concluída com ao menos um item, estoque sem saldo negativo e igualdade entre itens e movimentações, exigem transação e consultas A01–A06; CHECK isolado não as garante. O modelo minimiza coleta sensível (RN14).
+PKs numéricas identificam registros estáveis, enquanto chaves compostas garantem unicidade do fato por par/trio; FKs RESTRICT preservam histórico. UNIQUE assegura exclusividade de receita e atendimento por pedido (RN02); CHECK valida domínio de procedimento, status, preços e quantidades, e datas no contexto da linha (RN04, RN05, RN07, RN08). Restrição de movimentação identifica uma origem válida segundo o tipo. A igualdade entre atendimento da receita e pedido, idade de receita, saldo não negativo, itens necessários e conciliação entre tabelas **não são garantidas por CHECK**: são avaliadas nas consultas A01–A11 e deverão ser aplicadas transacionalmente no sistema. Uso de InnoDB e índices por data/produto favorece relatórios sem duplicar informações.
 
-### 1.6 Proposta de Arquitetura Analítica para BI e IA
+### 1.6 Arquitetura analítica para BI e IA
 
-A camada transacional InnoDB registra compras, vendas e movimentos com chaves coerentes; visões de consulta ou extrações agregadas por período, categoria e produto podem alimentar BI sem alterar as tabelas operacionais. Aplicações possíveis: detecção de necessidade de reposição, distribuição do faturamento, atraso de ordens e previsão sazonal após validação de qualidade e volume dos dados. Não há garantia de eficácia preditiva com a massa sintética; dados reais tratados de maneira lícita e historicamente suficientes são necessários para IA.
+Indicadores agregados por pedido, data, cliente, categoria, fornecedor e movimentação podem alimentar painéis com visualização de vendas, estoque, atrasos e pagamentos. Predição de demanda só seria apropriada com histórico real suficientemente amplo, anonimização e aprovação da organização; a massa sintética **não valida modelos preditivos**.
 
-**KPIs obrigatoriamente calculáveis e rastreabilidade dos problemas** (as metas dependem da organização):
-
-| Problema/KPI | Fórmula | Periodicidade e meta | Tabelas | Consulta |
+| Problema / KPI | Fórmula | Período / meta | Tabelas | Consulta |
 |---|---|---|---|---|
-| P1 / Faturamento | Soma de (quantidade×preço do item) − desconto, por mês | mês; meta pendente | VENDA, ITEM_VENDA | `G01` |
-| P1 / Ticket médio | Valor líquido de vendas concluídas ÷ nº vendas concluídas | mês; meta pendente | VENDA, ITEM_VENDA | `G02` |
-| P2 / Abaixo do mínimo | Contagem de SKUs cujo saldo de movimentos é menor que mínimo | dia; meta pendente | PRODUTO, MOVIMENTACAO_ESTOQUE | `G03` |
-| P2 / Giro | Soma de unidades vendidas por SKU | período; meta pendente | PRODUTO, ITEM_VENDA, VENDA | `G04` |
-| P3 / Compras | Soma de custos×quantidades de compras recebidas | período; meta pendente | FORNECEDOR, COMPRA, ITEM_COMPRA | `G05` |
-| P4 / Cancelamento | 100×nº vendas canceladas ÷ nº vendas | mês; meta pendente | VENDA | `G06` |
-| P5 / Montagens atrasadas | Nº de ordens abertas com previsão antes da data corrente | dia; meta pendente | ORDEM_MONTAGEM | `G07` |
-| P4 / Conciliação | Total dos itens − descontos − pagamentos confirmados | por venda; meta diferença 0 | VENDA, ITEM_VENDA, PAGAMENTO | `G08` |
+| P1 / Conversão atendimento-pedido | 100 × pedidos / atendimentos | semanal, meta a validar | atendimento, pedido | G01 |
+| P1 / Cancelamentos | 100 × cancelados / total pedidos | mensal, meta a validar | pedido | G10 |
+| P2 / Faturamento estimado de pedidos concluídos | Σ itens (quantidade × preço) − descontos | mensal, meta a validar | pedido, item_pedido | G02 |
+| P2 / Ticket médio | faturamento estimado / pedidos concluídos | mensal, meta a validar | pedido, item_pedido | G02 |
+| P2 / Saldo pendente | total devido − pagamentos quitados | por pedido, meta zero na conclusão | pedido, item_pedido, pagamento | G03 |
+| P2 / Recebimento por forma | Σ parcelas quitadas por forma | mensal, meta a validar | pagamento | G09 |
+| P3 / SKUs abaixo do mínimo | contagem de saldos calculados menores que mínimo | diário, meta a validar | produto, movimentacao_estoque | G04 |
+| P3 / Custo de compras recebidas | Σ quantidade × custo unitário | mensal, meta a validar | fornecedor, compra, item_compra | G05 |
+| P4 / Montagens atrasadas | contagem de montagens em aberto após previsão | diário, meta a validar | montagem | G06 |
+| P4 / Garantias vigentes | contagem com conclusão ≤ referência ≤ conclusão + 1 ano | diário, meta a validar | montagem | G07 |
+| P5 / Destino de peças trocadas | contagem por destino | mensal, meta a validar | troca, item_troca | G08 |
 
-## 2. Modelo Lógico Relacional
+Consultas calculam os números, porém o termo *faturamento estimado* é indicador de valor de pedidos, não de faturamento fiscal/recebimento efetivo.
 
-![Diagrama do modelo lógico](diagramas/modelo_proposto.md)
+## 2. Modelo lógico relacional
 
-[Modelo lógico PNG](diagramas/modelo_proposto.md). **Software:** Graphviz/DOT (diagrama com tabelas, tipos, PK, FK e cardinalidades, estilizado conforme convenções do brModelo; sem arquivo `.brM`). Para implementar as restrições: [dicionário HTML](docs/dicionario_dados.html).
+[Modelo lógico — 17 tabelas](diagramas/modelo_logico_revisado.md). Ferramenta atual: Mermaid/Markdown no GitHub. Exigência adicional da rubrica: versão gráfica na notação **brModelo**, com nome, tipo, PK, FK e cardinalidade (mín,máx) por extremidade.
 
-## 3. Script SQL Completo
+## 3. Script SQL completo
 
-[**docs/script.sql — MySQL 8.0.16+**](docs/script.sql). Inclui `CREATE DATABASE`, 12 `CREATE TABLE`, FKs, CHECKs, UNIQUE, massa fictícia, `SELECT` com JOIN, `UPDATE` e `DELETE` em transação revertida, consultas gerenciais G01–G08 e auditorias A01–A06. **Como usar:** MySQL Workbench → abrir `docs/script.sql` → executar a partir de servidor MySQL 8.0.16+ configurado. A sessão usou validação estrutural local, mas **não executou o script num servidor MySQL**; rodar integralmente em ambiente de laboratório antes da apresentação.
+**[Abrir script SQL MySQL 8](docs/script.sql)**. Arquivo único com CREATE DATABASE, 17 CREATE TABLE e constraints, INSERTs de massa sintética reproduzível, JOINs, UPDATE/DELETE em transação com ROLLBACK, **G01–G10** e **A01–A11**. MySQL 8.0.16+ necessário para suporte adequado a CHECK. Teste de ponta a ponta **ainda não comprovado** em servidor MySQL nesta sessão. Com a conexão configurada no MySQL Workbench, executar o script integral em banco vazio e conferir resultados, inclusive auditorias.
 
-## 4. Massa de Dados
+## 4. Massa de dados
 
-A massa está incorporada ao [script SQL](docs/script.sql), é **inteiramente fictícia** e serve para exercitar casos de vendas concluídas, abertas e canceladas, pagamentos com duas formas, compras recebidas e abertas, produtos abaixo do estoque mínimo, montagens atrasadas e conciliação de movimentos.
+Os INSERTs **fictícios** representam quatro semanas de operação hipotética, baseadas nas **aproximações de 100 atendimentos e 80 vendas semanais relatadas** na E1 — sem usar cliente ou prescrição reais. O modelo possui 280 clientes simulados, 3 funcionários simulados, 400 atendimentos, 320 receitas, 768 linhas de medidas, 320 pedidos (280 concluídos, 25 abertos, 15 cancelados), 666 itens de pedido, 400 parcelas, 36 produtos, 8 fornecedores, 35 compras, 35 itens de compra, 305 registros de montagem, 12 trocas, 12 itens de troca e 655 movimentos, além de 3 categorias. As quantidades por mês/dia e estados foram criados para demonstrar consultas; **não são números reais da ótica**. Há clientes sem pedido, parcelas pendentes, diferentes meios de pagamento, itens abaixo do mínimo, pedidos cancelados e montagem em atraso.
 
-| Tabela | Linhas aproximadas sintéticas | Observação |
-|---|---:|---|
-| `cliente` | 60 | Massa de demonstração, não observação real. |
-| `funcionario` | 5 | Massa de demonstração, não observação real. |
-| `fornecedor` | 6 | Massa de demonstração, não observação real. |
-| `categoria` | 4 | Massa de demonstração, não observação real. |
-| `produto` | 25 | Massa de demonstração, não observação real. |
-| `compra` | 12 | Massa de demonstração, não observação real. |
-| `item_compra` | 36 | Massa de demonstração, não observação real. |
-| `venda` | 75 | Massa de demonstração, não observação real. |
-| `item_venda` | 150 | Massa de demonstração, não observação real. |
-| `pagamento` | 77 | Massa de demonstração, não observação real. |
-| `movimentacao_estoque` | 158 | Massa de demonstração, não observação real. |
-| `ordem_montagem` | 23 | Massa de demonstração, não observação real. |
+## 5. Organização do repositório
 
-**Justificativa provisória do volume:** os números acima não foram derivados de vendas, clientes ou estoque reais, pois os dados de porte e entrevista ainda não estavam acessíveis. São suficientes apenas para teste acadêmico dos relacionamentos. **Antes da entrega, obter os números reais do porte e ajustar/justificar o volume da massa em função deles, sem substituir registros fictícios por dados pessoais.**
-
-## 5. Repositório GitHub
-
-Estrutura proposta: `README.md` na raiz da branch `main`; `entrega_1/README.md`; `diagramas/*.png`; `docs/dicionario_dados.html`; `docs/script.sql`; `levantamento/levantamento.md`, fotos JPG/PNG **a inserir pelo grupo**; `apresentacao/pitch_otica_kadosh.pptx`.
-
-O histórico de commits de cada integrante e o perfil verificado são evidências próprias do GitHub e **não foram criados por esta ferramenta**. Não atribuir contribuição a pessoas que não participaram de fato.
+O professor corrige este **README da raiz de `main`**. O [dicionário atualizado](docs/dicionario_dados.html), [script](docs/script.sql), [levantamento](levantamento/levantamento.md), [DER](diagramas/der_conceitual_revisado.md), [modelo lógico](diagramas/modelo_logico_revisado.md), [evidência fotográfica](entrega_1/Otica%20kadoshi.jpeg) e demais evidências estão ligados aqui. **A colaboração real precisa ser demonstrada pelos commits de cada integrante**, sem atribuir falsamente contribuições a terceiros.
 
 ## 6. Uso de Inteligência Artificial
 
-## Registro de uso de Inteligência Artificial (aplicável às duas entregas)
+Usou-se **ChatGPT (OpenAI)** para revisar os requisitos da rubrica, comparar o levantamento original da E1 com o modelo anterior, sugerir normalização, estruturar tabelas SQL/queries, gerar massa fictícia de testes, produzir modelo documental e redigir partes do relatório. **[Registro detalhado com motivação, prompts aproximados, respostas, ajustes/rejeições, verificação e limites](docs/uso_de_ia.md)**. O protótipo anterior de 12 tabelas foi rejeitado como insuficiente; não foram criadas respostas de entrevista nem correções atribuídas ao professor. Os artefatos são sugestões técnicas que exigem validação do grupo, testes e conferência do docente.
 
-| Item | Registro transparente |
-|---|---|
-| Ferramenta e etapa | ChatGPT (GPT-6), outubro de 2026; leitura dos esqueletos e materiais, estruturação dos relatórios, proposta de modelo, diagramas, dicionário, geração de dados sintéticos, SQL, slides. |
-| Motivação | Apoiar organização dos artefatos e consistência das relações e restrições. |
-| Prompt próximo do original | “Com base em todo o material disponível das aulas e dos projetos faça o que se pede no esqueleto de entrega 1 e 2. Drive das aulas [URL], referência de dicionário [URL], baseado no GitHub da Ótica Kadosh [URL].” |
-| Resposta recebida | Estrutura de 12 entidades; especificação de requisitos, regras, diagramas e script MySQL; conjuntos de dados gerados com nomes fictícios. |
-| Fontes consultadas | Esqueletos oficiais `00-c_Esqueleto_Entrega_1.md` e `00-d_Esqueleto_Entrega_2.md`, aulas de modelagem, conversão, normalização, DDL/DML, exemplo `02-03g_Exemplo_Dicionario_Dados.pdf` e artigo Datapsico. O GitHub de referência não foi efetivamente recuperado. |
-| Material rejeitado ou corrigido | Não foram inventados nomes/RGMs de alunos, endereço, contato, entrevista, fotos, porte, volumes reais, correções do professor e procedimentos não comprovados. O conjunto sintético NÃO é evidência de porte real. |
-| Justificativa da versão atual | Entregáveis técnicos utilizáveis para validação, preservando integridade e demonstrando queries e regras; a pesquisa de campo continua essencial. |
-| Reflexão crítica | IA não observa processos presencialmente, não autentica entrevistas, não substitui revisão do professor e não atesta execução em MySQL sem ambiente de testes disponível. Um esquema plausível não é necessariamente o esquema real da organização. |
+## 7. Apresentação corporativa final (8 minutos)
 
-O grupo deve complementar o histórico com seus próprios prompts, revisões, exclusões e decisões de validação; não apresentar esta tabela como relato de trabalho humano que não ocorreu.
+**Roteiro cronometrado sugerido:** 0:00–0:55 contexto e P1–P5; 0:55–1:50 solução integrada; 1:50–3:00 modelo lógico 17 tabelas; 3:00–4:20 demonstração CREATE/INSERT/JOIN no MySQL; 4:20–5:45 demonstração G03, G04 e A03/A05; 5:45–6:50 KPIs e BI/IA; 6:50–8:00 benefícios e conclusão. Todos os integrantes devem participar da defesa, e a demonstração precisa ser executada de fato em MySQL. Preparar slides finalizados, ensaiar e confirmar disponibilidade de laboratório.
 
-## 7. Apresentação Corporativa Final
-
-[Pitch de aproximadamente 8 minutos — PPTX editável](apresentacao/pitch_otica_kadosh.pptx). Ordem: problema, solução, modelo lógico, SQL, consultas, BI/IA e benefícios. A demonstração real do script no MySQL e a defesa do modelo devem ser feitas pelo grupo. Os slides são um roteiro, não evidência de que a demonstração já aconteceu.
-
-## Critérios Atitudinais (20%)
-
-Dependem de avaliação 360º e de participação real, postura, responsabilidade e distribuição de commits. Não são preenchíveis por IA.
-
-## Resumo dos Pesos
-
-| Dimensão | Peso |
-|---|---:|
-| Conceitual | 30% |
-| Procedimental | 50% |
-| Atitudinal | 20% |
-
-## Referências usadas
-
-- [Drive das aulas e materiais oficiais](https://drive.google.com/drive/folders/1QVVdiG4LxFE7L3BSnZDFmHyakaoPX94A), com destaque para os esqueletos 00-c e 00-d, os materiais de DER, integridade, normalização, DDL e o exemplo 02-03g.
-- [Datapsico — guia para criação de dicionários de dados](https://medium.com/datapsico/dicionario-de-dados-ac3ce726c34b).
-- [Repositório informado para a Entrega 1 da Ótica Kadosh](https://github.com/jfpiresoficial/Entrega-1-Modelo-Conceitual-DER---otica-kadosh-modelagem-dados) — **referência solicitada; conteúdo não verificado nesta execução**.
+### Antes da entrega definitiva
+Ver [pendências de verificação](docs/validacoes_pendentes.md). Faltam **correções oficiais da E1**, desenhos brModelo finais, teste SQL MySQL e confirmação de dados/participação da entrevista. A versão atual é **material de trabalho para revisão acadêmica**, não entrega homologada.
